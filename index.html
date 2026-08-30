@@ -4078,10 +4078,47 @@
             }
 
             function refreshTeacherData() {
-                if (!IS_GAS) { alert('실제 GAS 환경에서만 작동합니다.'); return; }
+                // [수정] 시트를 연결하지 않은 체험 모드에서도 화면을 볼 수 있게 합니다.
+                //   전에는 "실제 GAS 환경에서만 작동합니다" 안내만 뜨고 아무것도 안 나왔습니다.
+                if (!IS_GAS) {
+                    var demo = buildDemoTeacherData();
+                    renderTeacherSummary(demo);
+                    renderTeacherStudentTable(demo);
+                    var note = document.getElementById('t-demo-note');
+                    if (!note) {
+                        note = document.createElement('div');
+                        note.id = 't-demo-note';
+                        note.style.cssText = 'margin:12px 0;padding:12px 16px;background:#FEF3C7;' +
+                            'border:2px solid #FCD34D;border-radius:12px;color:#92400E;' +
+                            'font-size:.95rem;line-height:1.5;';
+                        note.textContent = '체험 모드예요. 아래 자료는 화면을 살펴보시라고 넣은 예시입니다. ' +
+                            '선생님 설정에서 구글 시트를 연결하면 우리 반 학생들의 실제 기록이 나옵니다.';
+                        var host = document.getElementById('teacher-dashboard');
+                        if (host) host.insertBefore(note, host.children[1] || null);
+                    }
+                    return;
+                }
+                var note0 = document.getElementById('t-demo-note');
+                if (note0 && note0.parentNode) note0.parentNode.removeChild(note0);
                 google.script.run
                     .withSuccessHandler(function (allData) { renderTeacherSummary(allData); renderTeacherStudentTable(allData); })
                     .getAllStudentData();
+            }
+
+            /* 체험 모드에서 보여 줄 예시 자료를 만듭니다. (학생1~학생30) */
+            function buildDemoTeacherData() {
+                var today = new Date().toLocaleDateString();
+                var out = [];
+                for (var i = 1; i <= 30; i++) {
+                    var pts = (i * 37) % 260;              // 학생마다 다른 점수
+                    var acted = (i % 3 !== 0);             // 셋 중 둘은 오늘 활동함
+                    out.push({
+                        name: '학생' + i,
+                        points: pts,
+                        history: acted ? [{ date: today, action: '오늘의 실천' }] : []
+                    });
+                }
+                return out;
             }
 
             function renderTeacherSummary(allData) {
