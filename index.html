@@ -3755,7 +3755,13 @@
                         return;
                     }
                     CLASS_ACT_STATS = actStats;
-                    if (!CLASS_STATS || (CLASS_STATS.todayLogCount || 0) === 0) {
+                    // 활동로그 시트 집계(CLASS_STATS.todayLogCount)는 별도 로그 기록에
+                    // 의존하기 때문에 지연되거나 어긋날 수 있어요. 대신 학생 데이터를
+                    // 그대로 반영하는 actStats의 오늘 실천 인원 합계로 판단해서,
+                    // 학생 한 명이라도 오늘 기록을 남기면 바로 "우리 반 소식"에
+                    // 반영되도록 합니다.
+                    const totalTodayFromActs = actStats.reduce((s, a) => s + (a.todayCount || 0), 0);
+                    if (totalTodayFromActs === 0) {
                         const placeholder = '<div style="color:#94A3B8; font-size:1.1rem; font-weight:700; padding:10px; text-align:center;">아직 오늘 기록을 기다리고 있어요! 🌱</div>';
                         document.getElementById('display-good-practice').innerHTML = placeholder;
                         document.getElementById('display-bad-practice').innerHTML = placeholder;
